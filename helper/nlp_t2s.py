@@ -5,7 +5,8 @@ import os
 import streamlit as st
 
 # Cấu hình môi trường cho Java, tùy mng set java
-os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jre-1.8"
+if os.name == "nt":
+    os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jre-1.8"
 
 if not os.path.exists("VnCoreNLP/models"):
     py_vncorenlp.download_model(save_dir="VnCoreNLP")
