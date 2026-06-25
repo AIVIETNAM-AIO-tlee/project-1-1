@@ -1,13 +1,20 @@
 from gtts import gTTS
 from py_vncorenlp import VnCoreNLP
-import py_vncorenlp
-import os
+import os 
 import streamlit as st
-from helper.downloader import _ensure_vncorenlp_bundle, VNCORENLP_DIR
+from pathlib import Path
+from urllib.request import urlretrieve
 
+CURR_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(CURR_DIR)
+VNCORENLP_DIR = os.path.join(BASE_DIR, "vncorenlp", "VnCoreNLP")
+MODELS_DIR = os.path.join(VNCORENLP_DIR, "models")
+JAR_PATH = os.path.join(VNCORENLP_DIR, "VnCoreNLP-1.2.jar")
+REMOTE_BASE = "https://raw.githubusercontent.com/vncorenlp/VnCoreNLP/master"
 
 if os.name == "nt":
     os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jre-1.8"
+
 
 
 @st.cache_resource
@@ -15,7 +22,9 @@ def load_model():
     _ensure_vncorenlp_bundle()
     return VnCoreNLP(save_dir=VNCORENLP_DIR, annotators=["wseg"])
 
-model = load_model()
+
+def get_model():
+    return load_model()
 
 mapping = {
     "0-4": "Điểm số từ 0 đến 4",
@@ -28,6 +37,7 @@ mapping = {
 
 def preprocess_text(text):
     text = text.lower().strip() # bỏ khoảng trắng đầu cuối và chuẩn hóa về dạng chữ thường
+    model = get_model()
 
     # tách thành token
     tokens = model.word_segment(text)
@@ -37,10 +47,7 @@ def preprocess_text(text):
 
     # thay mapping 1 số từ không có trong từ điển corpus
     tokens = [mapping.get(tok, tok) for tok in tokens]
-    print("Tokens:", tokens) # debug
-    annotated = model.annotate_text(text)
-    print("Annotated:", annotated) # debug
-    return tokens, annotated
+    return tokens, model.annotate_text(text)
 
 def flatten_to_text(tokens):
     sentences = ""
